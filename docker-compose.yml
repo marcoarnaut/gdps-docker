@@ -1,32 +1,40 @@
 version: '3.8'
-services:
-  db:
-    image: mariadb:10.6
-    container_name: db8080
-    restart: always
-    env_file: .env
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - ./mysql_data:/var/lib/mysql
 
-  gdps:
-    image: gdpsimage:latest
-    container_name: gdps_server
-    restart: always
+services:
+  s${WEB_PORT}:
+    build: .
+    container_name: s${WEB_PORT}
     ports:
-      - "${GDPS_PORT}:80"
-    depends_on:
-      - db
-    env_file: .env
-    volumes:
-      - ./:/var/www/html
-      - ./mysql_data:/var/lib/mysql
+      - "${WEB_PORT}:80"
     environment:
-      MYSQL_HOST: "db"
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      - DB_HOST=db${WEB_PORT}
+      - DB_PORT=3306
+      - DB_USER=gdps_user
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=db${WEB_PORT}
+    depends_on:
+      - db${WEB_PORT}
+    networks:
+      - gdps_network
+
+  db${WEB_PORT}:
+    image: mariadb:10.6
+    container_name: db${WEB_PORT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_USER: gdps_user
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: db${WEB_PORT}
+    volumes:
+      - db_data_${WEB_PORT}:/var/lib/mysql
+    ports:
+      - "${DB_EXTERNAL_PORT}:3306"
+    networks:
+      - gdps_network
+
+volumes:
+  db_data_${WEB_PORT}:
+
+networks:
+  gdps_network:
+    driver: bridge
