@@ -13,7 +13,7 @@ services:
       - DB_PASS=${DB_PASS}
       - DB_NAME=db${WEB_PORT}
     depends_on:
-      - db${PORT}
+      - db${WEB_PORT}
     networks:
       - gdps_network
 
@@ -28,7 +28,7 @@ services:
     volumes:
       - db_data_${PORT}:/var/lib/mysql
     ports:
-      - "${DB_PORT}:3306"
+      - "${DB_EXTERNAL_PORT}:3306"
     networks:
       - gdps_network
 
